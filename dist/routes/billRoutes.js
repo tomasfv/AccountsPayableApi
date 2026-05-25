@@ -1,0 +1,16 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const billController_1 = require("../controllers/billController");
+const authMiddleware_1 = require("../middleware/authMiddleware");
+const router = express_1.default.Router();
+router.get('/', authMiddleware_1.protect, billController_1.getAllBills);
+router.get('/:id', authMiddleware_1.protect, billController_1.getBillById);
+router.post('/', authMiddleware_1.protect, billController_1.createBill);
+router.post('/:id/approve', authMiddleware_1.protect, (0, authMiddleware_1.authorize)('Admin', 'Approver'), billController_1.approveBill);
+router.post('/:id/schedule', authMiddleware_1.protect, (0, authMiddleware_1.authorize)('Admin', 'Approver'), billController_1.schedulePayment);
+router.post('/:id/pay', authMiddleware_1.protect, (0, authMiddleware_1.authorize)('Admin'), billController_1.executePayment);
+exports.default = router;
