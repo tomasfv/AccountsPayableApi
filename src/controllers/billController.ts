@@ -180,32 +180,56 @@ export const schedulePayment = async (req: Request, res: Response, next: NextFun
 };
 
 export const executePayment = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+  const { paymentMethod } = req.body;
   const transaction = await sequelize.transaction();
   try {
     const bill = await Bill.findByPk(req.params.id, {
-      include: [{ model: Payment, as: 'payments', where: { status: 'Scheduled' }, limit: 1 }],
+      include: [{ model: Payment, as: 'payments' }],
       transaction
     });
 
     if (!bill) {
       await transaction.rollback();
-      return res.status(404).json({ success: false, message: 'Bill with scheduled payments not found' });
+      return res.status(404).json({ success: false, message: 'Bill not found' });
     }
 
-    const payment = bill.payments?.[0];
-    if (!payment) {
+    const allowedStatuses = ['Approved', 'Overdue'];
+    const currentStatus = bill.get('status') as string;
+    if (!allowedStatuses.includes(currentStatus)) {
       await transaction.rollback();
-      return res.status(404).json({ success: false, message: 'No scheduled payment found for this bill' });
+      return res.status(400).json({
+        success: false,
+        message: `Bill status is "${currentStatus}", it cannot be paid.`
+      });
     }
 
-    // Simulate bank transaction API call
+    // Check existing payments
+    const payments = bill.payments || [];
+    const lastPayment = payments.length > 0 ? payments[payments.length - 1] : null;
+
+    let payment;
     const transactionRef = 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase();
 
-    await payment.update({
-      status: 'Paid',
-      paidDate: new Date(),
-      transactionReference: transactionRef
-    }, { transaction });
+    if (lastPayment && lastPayment.status === 'Scheduled') {
+      // Use existing scheduled payment
+      payment = lastPayment;
+      await payment.update({
+        status: 'Paid',
+        paidDate: new Date(),
+        transactionReference: transactionRef
+      }, { transaction });
+    } else {
+      // Create and pay in one step
+      payment = await Payment.create({
+        billId: bill.id,
+        paymentMethod: paymentMethod || lastPayment?.paymentMethod || 'ACH',
+        amount: bill.amount,
+        scheduledDate: new Date().toISOString().split('T')[0],
+        status: 'Paid',
+        paidDate: new Date(),
+        transactionReference: transactionRef
+      }, { transaction });
+    }
 
     await bill.update({ status: 'Paid' }, { transaction });
 
