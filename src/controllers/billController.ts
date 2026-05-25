@@ -156,9 +156,6 @@ export const schedulePayment = async (req: Request, res: Response, next: NextFun
       status: 'Scheduled'
     }, { transaction });
 
-    // Update bill status to Scheduled
-    await bill.update({ status: 'Scheduled' }, { transaction });
-
     await transaction.commit();
 
     // Reload with associations
@@ -205,7 +202,7 @@ export const executePayment = async (req: Request, res: Response, next: NextFunc
     const transactionRef = 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase();
 
     await payment.update({
-      status: 'Completed',
+      status: 'Paid',
       paidDate: new Date(),
       transactionReference: transactionRef
     }, { transaction });

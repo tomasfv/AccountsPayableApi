@@ -126,7 +126,7 @@ async function seedData() {
         amount: 250.00,
         invoiceNumber: 'INV-GL-992',
         dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        status: 'Scheduled'
+        status: 'Approved'
       });
 
       // Create Payment for bill2

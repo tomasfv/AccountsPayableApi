@@ -8,7 +8,7 @@ export interface PaymentAttributes {
   amount: number;
   scheduledDate: string;
   paidDate?: Date | null;
-  status: 'Scheduled' | 'Processing' | 'Completed' | 'Failed';
+  status: 'Not Scheduled' | 'Scheduled' | 'Processing' | 'Paid' | 'Failed' | 'Cancelled' | 'Refunded';
   transactionReference?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
@@ -23,7 +23,7 @@ class Payment extends Model<PaymentAttributes, PaymentCreationAttributes> implem
   declare amount: number;
   declare scheduledDate: string;
   declare paidDate: Date | null;
-  declare status: 'Scheduled' | 'Processing' | 'Completed' | 'Failed';
+  declare status: 'Not Scheduled' | 'Scheduled' | 'Processing' | 'Paid' | 'Failed' | 'Cancelled' | 'Refunded';
   declare transactionReference: string | null;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
@@ -64,8 +64,8 @@ Payment.init({
     allowNull: true
   },
   status: {
-    type: DataTypes.ENUM('Scheduled', 'Processing', 'Completed', 'Failed'),
-    defaultValue: 'Scheduled',
+    type: DataTypes.ENUM('Not Scheduled', 'Scheduled', 'Processing', 'Paid', 'Failed', 'Cancelled', 'Refunded'),
+    defaultValue: 'Not Scheduled',
     allowNull: false
   },
   transactionReference: {

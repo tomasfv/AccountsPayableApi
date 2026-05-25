@@ -9,8 +9,7 @@ export interface BillAttributes {
   amount: number;
   invoiceNumber?: string | null;
   dueDate: string;
-  status: 'Draft' | 'Pending Approval' | 'Approved' | 'Scheduled' | 'Paid';
-  actions?: string[]; // VIRTUAL field
+  status: 'Draft' | 'Pending Approval' | 'Approved' | 'Overdue' | 'Rejected' | 'Cancelled' | 'Paid';
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -25,8 +24,7 @@ class Bill extends Model<BillAttributes, BillCreationAttributes> implements Bill
   declare amount: number;
   declare invoiceNumber: string | null;
   declare dueDate: string;
-  declare status: 'Draft' | 'Pending Approval' | 'Approved' | 'Scheduled' | 'Paid';
-  declare readonly actions: string[];
+  declare status: 'Draft' | 'Pending Approval' | 'Approved' | 'Overdue' | 'Rejected' | 'Cancelled' | 'Paid';
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
   declare readonly payments?: any[];
@@ -71,29 +69,9 @@ Bill.init({
     allowNull: false
   },
   status: {
-    type: DataTypes.ENUM('Draft', 'Pending Approval', 'Approved', 'Scheduled', 'Paid'),
+    type: DataTypes.ENUM('Draft', 'Pending Approval', 'Approved', 'Overdue', 'Rejected', 'Cancelled', 'Paid'),
     defaultValue: 'Draft',
     allowNull: false
-  },
-  actions: {
-    type: DataTypes.VIRTUAL,
-    get() {
-      const status = this.getDataValue('status');
-      switch (status) {
-        case 'Draft':
-          return ['SUBMIT', 'EDIT', 'DELETE'];
-        case 'Pending Approval':
-          return ['APPROVE', 'REJECT', 'EDIT'];
-        case 'Approved':
-          return ['SCHEDULE'];
-        case 'Scheduled':
-          return ['PAY', 'CANCEL_SCHEDULE'];
-        case 'Paid':
-          return ['VIEW_RECEIPT'];
-        default:
-          return [];
-      }
-    }
   }
 }, {
   sequelize,
