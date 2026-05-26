@@ -257,3 +257,97 @@ export const executePayment = async (req: Request, res: Response, next: NextFunc
     next(error);
   }
 };
+
+export const rejectBill = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<any> => {
+  try {
+    const bill = await Bill.findByPk(req.params.id);
+    if (!bill) {
+      return res.status(404).json({ success: false, message: 'Bill not found' });
+    }
+
+    if (bill.get('status') !== 'Pending Approval') {
+      return res.status(400).json({
+        success: false,
+        message: `Bill status is "${bill.get('status')}", it cannot be rejected.`
+      });
+    }
+
+    await bill.update({ status: 'Rejected' });
+
+    const updatedBill = await Bill.findByPk(bill.id, {
+      include: [
+        { model: Vendor, as: 'vendor' },
+        { model: User, as: 'creator', attributes: ['id', 'fullName', 'email'] },
+        { model: Payment, as: 'payments' }
+      ]
+    });
+
+    res.status(200).json({ success: true, data: updatedBill });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateBill = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<any> => {
+  try {
+    const bill = await Bill.findByPk(req.params.id);
+    if (!bill) {
+      return res.status(404).json({ success: false, message: 'Bill not found' });
+    }
+
+    const { vendorId, amount, invoiceNumber, dueDate } = req.body;
+    const fileUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
+
+    const updateData: Record<string, any> = {};
+    if (vendorId !== undefined) updateData.vendorId = vendorId;
+    if (amount !== undefined) updateData.amount = amount;
+    if (invoiceNumber !== undefined) updateData.invoiceNumber = invoiceNumber;
+    if (dueDate !== undefined) updateData.dueDate = dueDate;
+    if (fileUrl !== undefined) updateData.fileUrl = fileUrl;
+
+    if (bill.get('status') === 'Rejected') {
+      updateData.status = 'Pending Approval';
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, message: 'No fields to update' });
+    }
+
+    await bill.update(updateData);
+
+    const updatedBill = await Bill.findByPk(bill.id, {
+      include: [
+        { model: Vendor, as: 'vendor' },
+        { model: User, as: 'creator', attributes: ['id', 'fullName', 'email'] },
+        { model: Payment, as: 'payments' }
+      ]
+    });
+
+    res.status(200).json({ success: true, data: updatedBill });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteBill = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<any> => {
+  try {
+    const bill = await Bill.findByPk(req.params.id);
+    if (!bill) {
+      return res.status(404).json({ success: false, message: 'Bill not found' });
+    }
+
+    const status = bill.get('status') as string;
+    if (status !== 'Draft' && status !== 'Rejected') {
+      return res.status(400).json({
+        success: false,
+        message: `Bill status is "${status}", it cannot be deleted.`
+      });
+    }
+
+    await bill.destroy();
+
+    res.status(200).json({ success: true, message: 'Bill deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};

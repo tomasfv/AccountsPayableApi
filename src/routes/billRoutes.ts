@@ -4,6 +4,9 @@ import {
   getBillById,
   createBill,
   approveBill,
+  rejectBill,
+  updateBill,
+  deleteBill,
   schedulePayment,
   executePayment
 } from '../controllers/billController';
@@ -16,6 +19,9 @@ router.get('/', protect as any, getAllBills);
 router.get('/:id', protect as any, getBillById);
 router.post('/', protect as any, upload.single('file'), createBill as any);
 router.post('/:id/approve', protect as any, authorize('Admin', 'Approver') as any, approveBill as any);
+router.post('/:id/reject', protect as any, authorize('Admin', 'Approver') as any, rejectBill as any);
+router.put('/:id', protect as any, upload.single('file'), updateBill as any);
+router.delete('/:id', protect as any, deleteBill as any);
 router.post('/:id/schedule', protect as any, authorize('Admin', 'Approver') as any, schedulePayment);
 router.post('/:id/pay', protect as any, authorize('Admin') as any, executePayment);
 
