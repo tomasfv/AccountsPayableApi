@@ -55,6 +55,7 @@ export const getBillById = async (req: Request, res: Response, next: NextFunctio
 export const createBill = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<any> => {
   try {
     const { vendorId, amount, invoiceNumber, dueDate } = req.body;
+    const fileUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
     const vendor = await Vendor.findByPk(vendorId);
     if (!vendor) {
@@ -66,6 +67,7 @@ export const createBill = async (req: AuthenticatedRequest, res: Response, next:
       amount,
       invoiceNumber,
       dueDate,
+      fileUrl,
       createdById: req.user!.id,
       status: 'Pending Approval'
     });

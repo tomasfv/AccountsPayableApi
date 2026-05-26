@@ -10,11 +10,12 @@ export interface BillAttributes {
   invoiceNumber?: string | null;
   dueDate: string;
   status: 'Draft' | 'Pending Approval' | 'Approved' | 'Overdue' | 'Rejected' | 'Cancelled' | 'Paid';
+  fileUrl?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-export interface BillCreationAttributes extends Optional<BillAttributes, 'id' | 'approvedById' | 'invoiceNumber' | 'status'> {}
+export interface BillCreationAttributes extends Optional<BillAttributes, 'id' | 'approvedById' | 'invoiceNumber' | 'fileUrl' | 'status'> {}
 
 class Bill extends Model<BillAttributes, BillCreationAttributes> implements BillAttributes {
   declare id: string;
@@ -25,6 +26,7 @@ class Bill extends Model<BillAttributes, BillCreationAttributes> implements Bill
   declare invoiceNumber: string | null;
   declare dueDate: string;
   declare status: 'Draft' | 'Pending Approval' | 'Approved' | 'Overdue' | 'Rejected' | 'Cancelled' | 'Paid';
+  declare fileUrl: string | null;
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
   declare readonly payments?: any[];
@@ -72,6 +74,10 @@ Bill.init({
     type: DataTypes.ENUM('Draft', 'Pending Approval', 'Approved', 'Overdue', 'Rejected', 'Cancelled', 'Paid'),
     defaultValue: 'Draft',
     allowNull: false
+  },
+  fileUrl: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
 }, {
   sequelize,
