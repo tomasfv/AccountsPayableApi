@@ -351,3 +351,39 @@ export const deleteBill = async (req: AuthenticatedRequest, res: Response, next:
     next(error);
   }
 };
+
+export const reschedulePayment = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+  try {
+    const { paymentMethod, scheduledDate } = req.body;
+    const bill = await Bill.findByPk(req.params.id, {
+      include: [{ model: Payment, as: 'payments' }]
+    });
+
+    if (!bill) {
+      return res.status(404).json({ success: false, message: 'Bill not found' });
+    }
+
+    const existingPayment = bill.payments?.find((p: any) => p.status === 'Scheduled');
+
+    if (!existingPayment) {
+      return res.status(400).json({ success: false, message: 'No scheduled payment found to reschedule' });
+    }
+
+    if (scheduledDate) existingPayment.scheduledDate = scheduledDate;
+    if (paymentMethod) existingPayment.paymentMethod = paymentMethod;
+    await existingPayment.save();
+
+    const updatedBill = await Bill.findByPk(bill.id, {
+      include: [
+        { model: Vendor, as: 'vendor' },
+        { model: User, as: 'creator', attributes: ['id', 'fullName', 'email'] },
+        { model: User, as: 'approver', attributes: ['id', 'fullName', 'email'] },
+        { model: Payment, as: 'payments' }
+      ]
+    });
+
+    res.json({ success: true, message: 'Payment rescheduled successfully', data: { bill: updatedBill } });
+  } catch (error) {
+    next(error);
+  }
+};
