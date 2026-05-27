@@ -9,7 +9,8 @@ import {
   deleteBill,
   schedulePayment,
   executePayment,
-  reschedulePayment
+  reschedulePayment,
+  cancelPayment
 } from '../controllers/billController';
 import { protect, authorize } from '../middleware/authMiddleware';
 import upload from '../middleware/upload';
@@ -26,5 +27,6 @@ router.delete('/:id', protect as any, deleteBill as any);
 router.post('/:id/schedule', protect as any, authorize('Admin', 'Approver') as any, schedulePayment);
 router.post('/:id/pay', protect as any, authorize('Admin') as any, executePayment);
 router.post('/:id/reschedule', protect as any, authorize('Admin', 'Approver') as any, reschedulePayment as any);
+router.post('/:id/cancel-payment', protect as any, authorize('Admin', 'Approver') as any, cancelPayment as any);
 
 export default router;
