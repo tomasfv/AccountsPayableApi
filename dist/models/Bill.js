@@ -46,29 +46,13 @@ Bill.init({
         allowNull: false
     },
     status: {
-        type: sequelize_1.DataTypes.ENUM('Draft', 'Pending Approval', 'Approved', 'Scheduled', 'Paid'),
+        type: sequelize_1.DataTypes.ENUM('Draft', 'Pending Approval', 'Approved', 'Overdue', 'Rejected', 'Cancelled', 'Paid'),
         defaultValue: 'Draft',
         allowNull: false
     },
-    actions: {
-        type: sequelize_1.DataTypes.VIRTUAL,
-        get() {
-            const status = this.getDataValue('status');
-            switch (status) {
-                case 'Draft':
-                    return ['SUBMIT', 'EDIT', 'DELETE'];
-                case 'Pending Approval':
-                    return ['APPROVE', 'REJECT', 'EDIT'];
-                case 'Approved':
-                    return ['SCHEDULE'];
-                case 'Scheduled':
-                    return ['PAY', 'CANCEL_SCHEDULE'];
-                case 'Paid':
-                    return ['VIEW_RECEIPT'];
-                default:
-                    return [];
-            }
-        }
+    fileUrl: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true
     }
 }, {
     sequelize: database_1.default,

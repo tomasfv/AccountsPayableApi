@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
+const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const morgan_1 = __importDefault(require("morgan"));
@@ -18,42 +19,44 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
-if (process.env.NODE_ENV === 'development') {
-    app.use((0, morgan_1.default)('dev'));
+if (process.env.NODE_ENV === "development") {
+    app.use((0, morgan_1.default)("dev"));
 }
+// Serve uploaded files
+app.use("/uploads", express_1.default.static(path_1.default.join(__dirname, "..", "uploads")));
 // Health Check Endpoint
-app.get('/api/health', async (req, res) => {
+app.get("/api/health", async (req, res) => {
     try {
         await models_1.sequelize.authenticate();
         res.status(200).json({
-            status: 'UP',
-            database: 'CONNECTED',
-            timestamp: new Date()
+            status: "UP",
+            database: "CONNECTED",
+            timestamp: new Date(),
         });
     }
     catch (error) {
         res.status(500).json({
-            status: 'DOWN',
-            database: 'DISCONNECTED',
+            status: "DOWN",
+            database: "DISCONNECTED",
             error: error.message,
-            timestamp: new Date()
+            timestamp: new Date(),
         });
     }
 });
 // Mount Routes
-app.use('/api/auth', authRoutes_1.default);
-app.use('/api/vendors', vendorRoutes_1.default);
-app.use('/api/bills', billRoutes_1.default);
+app.use("/api/auth", authRoutes_1.default);
+app.use("/api/vendors", vendorRoutes_1.default);
+app.use("/api/bills", billRoutes_1.default);
 // Root route
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
     res.json({
-        message: 'Welcome to the Accounts Payable API (TypeScript)',
+        message: "Welcome to the Accounts Payable API (TypeScript)",
         endpoints: {
-            health: '/api/health',
-            auth: '/api/auth',
-            vendors: '/api/vendors',
-            bills: '/api/bills'
-        }
+            health: "/api/health",
+            auth: "/api/auth",
+            vendors: "/api/vendors",
+            bills: "/api/bills",
+        },
     });
 });
 // Register Global Error Handler
@@ -63,92 +66,96 @@ async function seedData() {
     try {
         const userCount = await models_1.User.count();
         if (userCount === 0) {
-            console.log('Seeding initial data...');
+            console.log("Seeding initial data...");
             // Create Users
             const admin = await models_1.User.create({
-                email: 'admin@example.com',
-                password: 'password123',
-                fullName: 'Admin User',
-                role: 'Admin'
+                email: "admin@example.com",
+                password: "password123",
+                fullName: "Admin User",
+                role: "Admin",
             });
             const approver = await models_1.User.create({
-                email: 'approver@example.com',
-                password: 'password123',
-                fullName: 'Approver User',
-                role: 'Approver'
+                email: "approver@example.com",
+                password: "password123",
+                fullName: "Approver User",
+                role: "Approver",
             });
             const submitter = await models_1.User.create({
-                email: 'submitter@example.com',
-                password: 'password123',
-                fullName: 'Submitter User',
-                role: 'Submitter'
+                email: "submitter@example.com",
+                password: "password123",
+                fullName: "Submitter User",
+                role: "Submitter",
             });
             // Create Vendors
             const vendorAcme = await models_1.Vendor.create({
-                name: 'Acme Corporation',
-                email: 'billing@acme.com',
-                phone: '123-456-7890',
-                bankName: 'Chase Bank',
-                bankRoutingNumber: '123456789',
-                bankAccountNumber: '987654321',
-                status: 'Active'
+                name: "Acme Corporation",
+                email: "billing@acme.com",
+                phone: "123-456-7890",
+                bankName: "Chase Bank",
+                bankRoutingNumber: "123456789",
+                bankAccountNumber: "987654321",
+                status: "Active",
             });
             const vendorGlobex = await models_1.Vendor.create({
-                name: 'Globex Corp',
-                email: 'accounts@globex.com',
-                phone: '987-654-3210',
-                bankName: 'Bank of America',
-                bankRoutingNumber: '987654321',
-                bankAccountNumber: '123456789',
-                status: 'Active'
+                name: "Globex Corp",
+                email: "accounts@globex.com",
+                phone: "987-654-3210",
+                bankName: "Bank of America",
+                bankRoutingNumber: "987654321",
+                bankAccountNumber: "123456789",
+                status: "Active",
             });
             // Create Bills
             const bill1 = await models_1.Bill.create({
                 vendorId: vendorAcme.id,
                 createdById: submitter.id,
-                amount: 1500.00,
-                invoiceNumber: 'INV-2026-001',
-                dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 14 days from now
-                status: 'Pending Approval'
+                amount: 1500.0,
+                invoiceNumber: "INV-2026-001",
+                dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+                    .toISOString()
+                    .split("T")[0], // 14 days from now
+                status: "Pending Approval",
             });
             const bill2 = await models_1.Bill.create({
                 vendorId: vendorGlobex.id,
                 createdById: submitter.id,
                 approvedById: approver.id,
-                amount: 250.00,
-                invoiceNumber: 'INV-GL-992',
-                dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                status: 'Scheduled'
+                amount: 250.0,
+                invoiceNumber: "INV-GL-992",
+                dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
+                    .toISOString()
+                    .split("T")[0],
+                status: "Approved",
             });
             // Create Payment for bill2
             await models_1.Payment.create({
                 billId: bill2.id,
-                paymentMethod: 'ACH',
-                amount: 250.00,
+                paymentMethod: "ACH",
+                amount: 250.0,
                 scheduledDate: bill2.dueDate,
-                status: 'Scheduled'
+                status: "Scheduled",
             });
-            console.log('Seeding completed successfully!');
+            console.log("Seeding completed successfully!");
         }
     }
     catch (error) {
-        console.error('Error seeding data:', error);
+        console.error("Error seeding data:", error);
     }
 }
 // Database Connection & Server Sync
 async function startServer() {
     try {
         await models_1.sequelize.authenticate();
-        console.log('Database connection has been established successfully.');
+        console.log("Database connection has been established successfully.");
         await models_1.sequelize.sync({ alter: true });
-        console.log('Database synced successfully.');
+        console.log("Database synced successfully.");
         await seedData();
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT} in ${process.env.NODE_ENV} mode.`);
         });
     }
     catch (error) {
-        console.error('Unable to start the database or server:', error);
+        console.error("Unable to start the database or server:", error);
         process.exit(1);
     }
 }

@@ -42,8 +42,8 @@ Payment.init({
         allowNull: true
     },
     status: {
-        type: sequelize_1.DataTypes.ENUM('Scheduled', 'Processing', 'Completed', 'Failed'),
-        defaultValue: 'Scheduled',
+        type: sequelize_1.DataTypes.ENUM('Not Scheduled', 'Scheduled', 'Processing', 'Paid', 'Failed', 'Cancelled', 'Refunded'),
+        defaultValue: 'Not Scheduled',
         allowNull: false
     },
     transactionReference: {
