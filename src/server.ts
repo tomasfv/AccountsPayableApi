@@ -12,6 +12,7 @@ import errorHandler from "./middleware/errorHandler";
 import authRoutes from "./routes/authRoutes";
 import vendorRoutes from "./routes/vendorRoutes";
 import billRoutes from "./routes/billRoutes";
+import cardRoutes from "./routes/cardRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -49,6 +50,7 @@ app.get("/api/health", async (req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/bills", billRoutes);
+app.use("/api/cards", cardRoutes);
 
 // Root route
 app.get("/", (req: Request, res: Response) => {
