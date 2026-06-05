@@ -6,7 +6,7 @@ dotenv.config();
 let sequelize: Sequelize;
 
 if (process.env.DATABASE_URL) {
-  // Railway / producción — usa la connection string directamente
+  // Railway / production
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: "postgres",
     logging: process.env.NODE_ENV === "development" ? console.log : false,
@@ -28,14 +28,14 @@ if (process.env.DATABASE_URL) {
     },
   });
 } else {
-  // Desarrollo local — variables individuales
+  // local
   sequelize = new Sequelize(
-    process.env.DB_NAME || "accountspayable",
-    process.env.DB_USER || "postgres",
-    process.env.DB_PASSWORD || "postgres",
+    process.env.DB_NAME || "",
+    process.env.DB_USER || "",
+    process.env.DB_PASSWORD,
     {
-      host: process.env.DB_HOST || "127.0.0.1",
-      port: parseInt(process.env.DB_PORT || "5432", 10),
+      host: process.env.DB_HOST || "",
+      port: parseInt(process.env.DB_PORT || "", 10),
       dialect: "postgres",
       logging: process.env.NODE_ENV === "development" ? console.log : false,
       pool: {
