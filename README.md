@@ -1,6 +1,6 @@
 # Accounts Payable App
 
-A full-stack invoice and payment management application inspired by Ramp and Melio. Enables billing teams to create, approve, schedule, and pay vendor invoices with full PDF attachment support, role-based access control, and a clean dark-themed UI.
+A full-stack invoice and payment management application inspired by Ramp and Melio. Enables billing teams to create, approve, schedule, and pay vendor invoices with full PDF attachment support, role-based access control, an AI-powered financial assistant for natural-language data analysis, and a clean dark-themed UI.
 
 ## Stack
 
@@ -8,6 +8,7 @@ A full-stack invoice and payment management application inspired by Ramp and Mel
 |---|---|
 | Frontend | React 19, Vite 8, TypeScript, Tailwind CSS v4, Redux Toolkit, React Router v7, react-hot-toast |
 | Backend | Node.js, Express, TypeScript, Sequelize v6, PostgreSQL, Multer |
+| AI | Groq SDK (Llama 3.1 8B) |
 | Auth | JWT (bcryptjs) |
 | PDF | Native `<embed>` viewer, disk storage via multer |
 
@@ -19,6 +20,7 @@ A full-stack invoice and payment management application inspired by Ramp and Mel
 - **Card management** — Each user can hold one Debit and one Credit card; card type validation when scheduling payments (ACH needs Debit, Card needs Credit)
 - **Payment scheduling** — Schedule payments for future dates, reschedule, cancel, or pay immediately
 - **Toast-based UX** — All alerts, confirmations, and errors use react-hot-toast; no `window.confirm` or banner errors
+- **AI financial assistant** — Chat-based AI that can answer any question about bills, payments, vendors, users, and cards using real-time database data via Groq (Llama 3.1 8B, free tier, no credit card required)
 
 ## Prioritized Workflows
 
@@ -27,20 +29,7 @@ A full-stack invoice and payment management application inspired by Ramp and Mel
 3. **Pay Now / Schedule / Reschedule / Cancel Payment** — Full payment flexibility: pay instantly, schedule for later, reschedule an existing scheduled payment, or cancel it.
 4. **Overdue detection & resolution** — Bills past due are flagged as Overdue; the primary action guides the user to resolve payment.
 5. **Card type enforcement** — SchedulePaymentModal validates that ACH payments have a Debit card and Card payments have a Credit card before allowing submission.
-
-## What Was Left Out (and Why)
-
-| Feature | Reason |
-|---|---|
-| **Real bank integration (Plaid, Stripe)** | Would require third-party API keys, webhook handling, and compliance (ACH origination). The app simulates payment execution with a generated transaction reference. |
-| **Multi-currency / international payments** | Adds significant complexity (FX rates, SWIFT, compliance). All amounts are in USD. |
-| **Email notifications** | Would require an email service (SendGrid, SES) and background job queue. The Settings page has a mock Notifications section as a placeholder. |
-| **File storage (S3 / Cloudinary)** | Railway's ephemeral filesystem means uploaded PDFs are lost on redeploy. For production you'd swap multer's disk storage to S3 or Cloudinary. |
-| **OAuth / SSO** | Simple JWT email+password auth is sufficient for demo purposes. |
-| **Approval workflows (multi-level)** | The model supports a single approver. Multi-level approval (e.g., manager → director → CFO) would need a separate approval chain table. |
-| **Audit log** | No dedicated audit trail table. Status changes are tracked implicitly via timestamps and the `approvedById`/`createdById` fields. |
-| **Unit / integration tests** | Not included in the initial build; the app was developed iteratively with manual testing. |
-| **CI/CD pipeline** | No GitHub Actions or similar configured. Deployment is manual via Railway + Netlify. |
+6. **AI-powered data analysis** — Ask natural-language questions about any data in the system (overdue bills, vendor spending, payment statuses, user activity) and get instant answers from an LLM fed with the full database context.
 
 ## Local Setup
 
@@ -147,6 +136,19 @@ The Card model has a `UNIQUE(createdById, type)` index, enforced by PostgreSQL. 
 ### Custom `confirmToast` replaces `window.confirm`
 
 All destructive actions (delete, cancel payment) use a custom `confirmToast(message)` utility (`client/src/utils/confirmToast.tsx`) that renders a confirm/cancel toast via react-hot-toast, keeping the UI consistent without native browser dialogs.
+
+### AI assistant with full database context
+
+The app includes a chat-based AI financial assistant (`/ai-assistant` route) powered by Groq's Llama 3.1 8B model (free tier, no credit card required). The backend endpoint `POST /api/ai/ask` is protected by JWT auth.
+
+**How it works:**
+1. The user types a natural-language question on the AI Assistant page
+2. The frontend sends the question + recent conversation history to `POST /api/ai/ask`
+3. The backend service (`api/src/services/aiService.ts`) queries the entire database — all bills, payments, vendors, users, and cards — and builds a comprehensive plain-text context dump
+4. This context is injected as the system prompt to the LLM, which then answers the user's question based on the real-time data
+5. The backend includes a calculated `[OVERDUE]` flag on past-due bills and today's date so the AI can accurately determine overdue items without relying on a DB status field
+
+**No pre-processing, no aggregation** — the AI receives the raw datasets and performs its own analysis. This allows open-ended questions like "Which vendor has the most pending bills?", "What's our total exposure?", or "Who approved the most bills this month?"
 
 ## Data Model
 
