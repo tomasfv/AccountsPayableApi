@@ -14,6 +14,8 @@ const errorHandler_1 = __importDefault(require("./middleware/errorHandler"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const vendorRoutes_1 = __importDefault(require("./routes/vendorRoutes"));
 const billRoutes_1 = __importDefault(require("./routes/billRoutes"));
+const cardRoutes_1 = __importDefault(require("./routes/cardRoutes"));
+const aiRoutes_1 = __importDefault(require("./routes/aiRoutes"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
 // Middleware
@@ -47,6 +49,8 @@ app.get("/api/health", async (req, res) => {
 app.use("/api/auth", authRoutes_1.default);
 app.use("/api/vendors", vendorRoutes_1.default);
 app.use("/api/bills", billRoutes_1.default);
+app.use("/api/cards", cardRoutes_1.default);
+app.use("/api/ai", aiRoutes_1.default);
 // Root route
 app.get("/", (req, res) => {
     res.json({
@@ -56,6 +60,7 @@ app.get("/", (req, res) => {
             auth: "/api/auth",
             vendors: "/api/vendors",
             bills: "/api/bills",
+            ai: "/api/ai",
         },
     });
 });
