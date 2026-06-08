@@ -13,6 +13,7 @@ import authRoutes from "./routes/authRoutes";
 import vendorRoutes from "./routes/vendorRoutes";
 import billRoutes from "./routes/billRoutes";
 import cardRoutes from "./routes/cardRoutes";
+import aiRoutes from "./routes/aiRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -51,6 +52,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/bills", billRoutes);
 app.use("/api/cards", cardRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Root route
 app.get("/", (req: Request, res: Response) => {
@@ -61,6 +63,7 @@ app.get("/", (req: Request, res: Response) => {
       auth: "/api/auth",
       vendors: "/api/vendors",
       bills: "/api/bills",
+      ai: "/api/ai",
     },
   });
 });
